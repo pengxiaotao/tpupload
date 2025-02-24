@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试 api_register.php</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        form {
+            margin-top: 20px;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="password"] {
+            padding: 8px;
+            width: 200px;
+            margin-bottom: 10px;
+        }
+
+        input[type="submit"] {
+            padding: 8px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+
+        .error {
+            color: red;
+            margin-top: 10px;
+        }
+
+        .success {
+            color: green;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>测试 api_register.php</h1>
+    <form method="post" action="api_register.php">
+        <label for="username">用户名：</label><br>
+        <input type="text" id="username" name="username" required><br>
+        <label for="email">邮箱：</label><br>
+        <input type="email" id="email" name="email" required><br>
+        <label for="password">密码：</label><br>
+        <input type="password" id="password" name="password" required><br>
+        <label for="confirm_password">确认密码：</label><br>
+        <input type="password" id="confirm_password" name="confirm_password" required><br>
+        <label for="captcha">验证码：</label><br>
+        <input type="text" id="captcha" name="captcha" required><br>
+        <img src="captcha.php" alt="验证码" onclick="this.src='captcha.php?' + Math.random();"><br>
+        <input type="submit" value="注册">
+    </form>
+</body>
+
+</html>

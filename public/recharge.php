@@ -29,8 +29,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // 彩虹易支付配置
         $pid = RAINBOW_PAY_ID;
         $pay_key = RAINBOW_PAY_KEY;
-        $notify_url = 'http://38.6.190.199:1968/notify.php'; // 请替换为实际的异步通知地址
-        $return_url = 'http://38.6.190.199:1968/recharge_success.php'; // 请替换为实际的跳转通知地址
+        $notify_url =$config['site_url'] . '/notify.php'; // 请替换为实际的异步通知地址
+        $return_url =$config['site_url'] . '/recharge_success.php'; // 请替换为实际的跳转通知地址
         $payment_type = 'alipay'; // 可根据需求修改支付方式，如 wechat 等
         $product_name = '电话助手会员充值'; // 商品名称
 

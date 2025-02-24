@@ -3,10 +3,13 @@ session_start();
 require_once '../includes/db.php';
 require_once '../includes/config.php';
 
+// 初始化错误和成功消息变量
 $error = '';
 $success = '';
 
+// 处理表单提交
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // 获取表单数据
     $username = $_POST['username'];
     $email = $_POST['email'];
     $password = $_POST['password'];
@@ -14,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $captcha = $_POST['captcha'];
 
     // 验证验证码
-    if (strtolower($captcha) != strtolower($_SESSION['captcha'])) {
+    if (strtolower($captcha) !== strtolower($_SESSION['captcha'])) {
         $error = '验证码输入错误，请重新输入。';
     } elseif (empty($username) || empty($email) || empty($password) || empty($confirm_password)) {
         $error = '所有字段均为必填项，请填写完整。';
@@ -29,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($result->num_rows > 0) {
             $error = '该用户名已被使用，请选择其他用户名。';
         } else {
-            // 检查邮箱是否已存在（可选步骤，根据需求决定是否添加）
+            // 检查邮箱是否已存在
             $stmt = $conn->prepare("SELECT id FROM users WHERE email = ?");
             $stmt->bind_param("s", $email);
             $stmt->execute();
@@ -110,29 +113,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
     <h1>用户注册</h1>
     <?php if ($error): ?>
-        <p class="error">
-            <?php echo $error; ?>
-        </p>
+        <p class="error"><?php echo $error; ?></p>
     <?php endif; ?>
     <?php if ($success): ?>
-        <p class="success">
-            <?php echo $success; ?>
-        </p>
+        <p class="success"><?php echo $success; ?></p>
     <?php endif; ?>
-    <form method="post">
-        <label for="username">用户名：</label><br>
-        <input type="text" id="username" name="username" required><br>
-        <label for="email">邮箱：</label><br>
-        <input type="email" id="email" name="email" required><br>
-        <label for="password">密码：</label><br>
-        <input type="password" id="password" name="password" required><br>
-        <label for="confirm_password">确认密码：</label><br>
-        <input type="password" id="confirm_password" name="confirm_password" required><br>
-        <label for="captcha">验证码：</label><br>
-        <input type="text" id="captcha" name="captcha" required><br>
-        <img src="captcha.php" alt="验证码" onclick="this.src='captcha.php?' + Math.random();"><br>
-        <input type="submit" value="注册">
-    </form>
+    <?php if (!$success): ?>
+        <form method="post">
+            <label for="username">用户名：</label><br>
+            <input type="text" id="username" name="username" required><br>
+            <label for="email">邮箱：</label><br>
+            <input type="email" id="email" name="email" required><br>
+            <label for="password">密码：</label><br>
+            <input type="password" id="password" name="password" required><br>
+            <label for="confirm_password">确认密码：</label><br>
+            <input type="password" id="confirm_password" name="confirm_password" required><br>
+            <label for="captcha">验证码：</label><br>
+            <input type="text" id="captcha" name="captcha" required><br>
+            <img src="captcha.php" alt="验证码" onclick="this.src='captcha.php?' + Math.random();"><br>
+            <input type="submit" value="注册">
+        </form>
+    <?php endif; ?>
 </body>
 
 </html>

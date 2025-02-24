@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API 测试页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        input[type="text"],
+        input[type="file"] {
+            padding: 8px;
+            width: 200px;
+            margin-bottom: 10px;
+        }
+
+        input[type="submit"] {
+            padding: 8px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+
+        #result {
+            margin-top: 20px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>API 测试页面</h1>
+    <form id="apiForm" enctype="multipart/form-data">
+        <label for="token">Token:</label><br>
+        <input type="text" id="token" name="token" required><br>
+        <label for="image">选择图片:</label><br>
+        <input type="file" id="image" name="image" required><br>
+        <input type="submit" value="提交">
+    </form>
+    <div id="result"></div>
+
+    <script>
+        document.getElementById('apiForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const form = this;
+            const formData = new FormData(form);
+
+            fetch('api_upload.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    document.getElementById('result').innerHTML = `<p style="color: red;">${data.error}</p>`;
+                } else {
+                    document.getElementById('result').innerHTML = `<p style="color: green;">识别结果: ${data.result}</p>`;
+                }
+            })
+            .catch(error => {
+                document.getElementById('result').innerHTML = `<p style="color: red;">请求出错: ${error.message}</p>`;
+            });
+        });
+    </script>
+</body>
+
+</html>

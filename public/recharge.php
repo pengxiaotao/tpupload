@@ -10,13 +10,29 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
+// 获取所有套餐信息
+$stmt = $conn->prepare("SELECT * FROM packages");
+$stmt->execute();
+$result = $stmt->get_result();
+$packages = $result->fetch_all(MYSQLI_ASSOC);
+$stmt->close();
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $user_id = $_SESSION['user_id'];
-    $amount = $_POST['amount'];
+    $package_id = $_POST['package_id'];
+
+    // 获取套餐信息
+    $stmt = $conn->prepare("SELECT price, bonus_amount FROM packages WHERE id = ?");
+    $stmt->bind_param("i", $package_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $package = $result->fetch_assoc();
+    $amount = $package['price'];
+    $bonus_amount = $package['bonus_amount'];
 
     // 生成唯一的订单号
     $order_id = uniqid();
-// 记录充值订单到数据库
+    // 记录充值订单到数据库
     $stmt = $conn->prepare("INSERT INTO recharge_logs (user_id, amount, order_id, is_paid) VALUES (?, ?, ?, 0)");
     $stmt->bind_param("ids", $user_id, $amount, $order_id);
     if (!$stmt->execute()) {
@@ -29,8 +45,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // 彩虹易支付配置
         $pid = RAINBOW_PAY_ID;
         $pay_key = RAINBOW_PAY_KEY;
-        $notify_url =$config['site_url'] . '/notify.php'; // 请替换为实际的异步通知地址
-        $return_url =$config['site_url'] . '/recharge_success.php'; // 请替换为实际的跳转通知地址
+        $notify_url = $config['site_url'] . '/notify.php'; // 请替换为实际的异步通知地址
+        $return_url = $config['site_url'] . '/recharge_success.php'; // 请替换为实际的跳转通知地址
         $payment_type = 'alipay'; // 可根据需求修改支付方式，如 wechat 等
         $product_name = '电话助手会员充值'; // 商品名称
 
@@ -42,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'notify_url' => $notify_url,
             'return_url' => $return_url,
             'name' => $product_name,
-            'money' => $amount
+           'money' => $amount
         ];
 
         // 按照参数名排序
@@ -67,9 +83,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'notify_url' => $notify_url,
             'return_url' => $return_url,
             'name' => $product_name,
-            'money' => $amount,
-            'sign' => $sign,
-            'sign_type' => 'MD5'
+           'money' => $amount,
+           'sign' => $sign,
+           'sign_type' => 'MD5'
         ];
 
         // 使用 POST 方式提交表单到支付接口
@@ -81,6 +97,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $form .= '<script>document.getElementById("payForm").submit();</script>';
 
         echo $form;
+        // 更新用户余额，包括赠送金额
+        $stmt = $conn->prepare("UPDATE users SET balance = balance + ? + ? WHERE id = ?");
+        $stmt->bind_param("ddi", $amount, $bonus_amount, $user_id);
+        $stmt->execute();
+        $stmt->close();
+
         return;
     }
 }
@@ -101,7 +123,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             margin-top: 20px;
         }
 
-        input[type="number"] {
+        select {
             padding: 8px;
             width: 200px;
             margin-bottom: 10px;
@@ -120,7 +142,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background-color: #0056b3;
         }
 
-        .error {
+       .error {
             color: red;
             margin-top: 10px;
         }
@@ -135,8 +157,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </p>
     <?php endif; ?>
     <form method="post">
-        <label for="amount">充值金额 (元):</label><br>
-        <input type="number" id="amount" name="amount" min="1" step="0.01" required><br>
+        <label for="package_id">选择套餐:</label><br>
+        <select id="package_id" name="package_id" required>
+            <?php foreach ($packages as $package): ?>
+                <option value="<?php echo $package['id']; ?>"><?php echo $package['name']; ?> - <?php echo $package['price']; ?> 元（赠送 <?php echo $package['bonus_amount']; ?> 元）</option>
+            <?php endforeach; ?>
+        </select><br>
         <input type="submit" value="提交充值请求">
     </form>
 </body>

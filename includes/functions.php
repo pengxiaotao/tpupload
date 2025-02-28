@@ -62,6 +62,23 @@ if (!function_exists('verify_sign')) {
         $result = openssl_verify($sign_string, $decoded_sign, $public_key, OPENSSL_ALGO_SHA256);
         return $result === 1;
     }
+    
+        function verifyToken($token) {
+        global $conn;
+        $stmt = $conn->prepare("SELECT id FROM users WHERE token =?");
+        $stmt->bind_param("s", $token);
+        $stmt->execute();
+        $stmt->store_result();
+    
+        if ($stmt->num_rows > 0) {
+            // 这里可能遗漏了 }
+            $stmt->close();
+            return true;
+        } else {
+            $stmt->close();
+            return false;
+        }
+    }
 }
 
 // ... 其他代码 ...

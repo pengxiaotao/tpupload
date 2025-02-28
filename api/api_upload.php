@@ -27,13 +27,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $row = $result->fetch_assoc();
             $balance = $row['balance'];
 
-            if ($balance < 0.5) {
+                if ($balance < UPLOAD_FEE) {
                 header('HTTP/1.1 402 Payment Required');
                 echo json_encode(['error' => '余额不足，请先充值']);
                 exit();
             } else {
                 // 扣费
-                $new_balance = $balance - 0.5;
+                $new_balance = $balance - UPLOAD_FEE;
                 $stmt = $conn->prepare("UPDATE users SET balance = ? WHERE id = ?");
                 $stmt->bind_param("d", $new_balance, $user_id);
                 $stmt->execute();

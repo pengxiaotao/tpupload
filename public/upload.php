@@ -26,11 +26,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['image'])) {
         $row = $result->fetch_assoc();
         $balance = $row['balance'];
 
-        if ($balance < 0.5) {
+               if ($balance < UPLOAD_FEE) {
             $error = '余额不足，请先充值';
         } else {
             // 扣费
-            $new_balance = $balance - 0.5;
+            $new_balance = $balance - UPLOAD_FEE;
             $stmt = $conn->prepare("UPDATE users SET balance = ? WHERE id = ?");
             $stmt->bind_param("di", $new_balance, $user_id);
             $stmt->execute();
@@ -57,6 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['image'])) {
             } else {
                 $error = 'OCR 识别失败';
             }
+    
         }
     } else {
         $error = '文件上传失败';

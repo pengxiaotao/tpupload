@@ -9,6 +9,26 @@ if (!isset($_SESSION['admin_id'])) {
     exit;
 }
 
+// 处理管理员设置每次扣费金额的表单提交
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_fee'])) {
+    $upload_fee = floatval($_POST['upload_fee']);
+    // 将新的扣费金额保存到配置文件中
+    $config_file = '../includes/config.php';
+    $config_content = file_get_contents($config_file);
+
+    // 查找并替换 UPLOAD_FEE 的定义
+    $pattern = "/define\('UPLOAD_FEE', [\d\.]+(\);)/";
+    if (preg_match($pattern, $config_content, $matches)) {
+        $old_define = $matches[0];
+        $new_define = "define('UPLOAD_FEE', $upload_fee);";
+        $config_content = str_replace($old_define, $new_define, $config_content);
+        file_put_contents($config_file, $config_content);
+    }
+
+    header('Location: index.php');
+    exit;
+}
+
 // 统计充值成功总计金额
 $stmt = $conn->prepare("SELECT SUM(amount) FROM recharge_logs WHERE is_paid = 1");
 $stmt->execute();
@@ -36,81 +56,29 @@ $stmt->execute();
 $result = $stmt->get_result();
 $uploaded_image_details = $result->fetch_all(MYSQLI_ASSOC);
 
+// 获取当前的扣费金额
+$upload_fee = UPLOAD_FEE;
 ?>
+
 <!DOCTYPE html>
 <html lang="zh-CN">
-
-
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>管理面板 - 统计信息</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-        }
-
-        h1 {
-            color: #333;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        th,
-        td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-
-        th {
-            background-color: #f2f2f2;
-        }
-
-        a {
-            color: #007BFF;
-            text-decoration: none;
-        }
-
-        a:hover {
-            text-decoration: underline;
-        }
-    </style>
+    <title>后台管理</title>
 </head>
-
 <body>
-    <h1>管理面板 - 统计信息</h1>
-    // 在适当的位置添加以下代码，例如在退出登录链接旁边
-<a href="change_password.php">修改密码</a>
-    <a href="logout.php">退出登录</a>
-    <h2>充值统计</h2>
-    <p>充值成功总计金额：<?php echo $total_success_amount; ?> 元</p>
+    <h1>后台管理</h1>
+    <p>充值成功总计金额: <?php echo $total_success_amount; ?> 元</p>
+    <p>用户量: <?php echo $total_users; ?></p>
+    <p>用户上传图片总量: <?php echo $total_uploaded_images; ?></p>
 
-    <h2>用户统计</h2>
-    <p>用户总量：<?php echo $total_users; ?></p>
+    <h2>设置每次扣费金额</h2>
+    <form method="post">
+        <label for="upload_fee">每次扣费金额（元）:</label>
+        <input type="number" id="upload_fee" name="upload_fee" step="0.01" value="<?php echo $upload_fee; ?>">
+        <button type="submit">保存</button>
+    </form>
 
-    <h2>图片上传统计</h2>
-    <p>用户上传图片总量：<?php echo $total_uploaded_images; ?></p>
-
-    <h2>用户上传图片详情</h2>
-    <table>
-        <tr>
-            <th>用户名</th>
-            <th>图片路径</th>
-        </tr>
-        <?php foreach ($uploaded_image_details as $detail): ?>
-            <tr>
-                <td><?php echo $detail['username']; ?></td>
-                <td><?php echo $detail['image_path']; ?></td>
-            </tr>
-        <?php endforeach; ?>
-    </table>
+    <!-- 其他管理功能 -->
 </body>
-
 </html>

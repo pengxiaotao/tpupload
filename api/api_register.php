@@ -16,16 +16,16 @@ $response = array();
 // 检查请求方法是否为 POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // 获取 POST 请求中的用户名、邮箱、密码、确认密码
-    $username = $_POST['username'];
-    $email = $_POST['email'];
-    $password = $_POST['password'];
-    $confirm_password = $_POST['confirm_password'];
+    $username = $_POST['username']?? '';
+    $email = $_POST['email']?? '';
+    $password = $_POST['password']?? '';
+    $confirm_password = $_POST['confirm_password']?? '';
 
     // 检查 captcha 是否存在于 POST 数据中
-    $captcha = isset($_POST['captcha']) ? $_POST['captcha'] : '';
+    $captcha = $_POST['captcha']?? '';
 
     // 验证验证码
-    if (empty($captcha) || strtolower($captcha) != strtolower($_SESSION['captcha'])) {
+    if (empty($captcha) || strtolower(trim($captcha)) != strtolower(trim($_SESSION['captcha']?? ''))) {
         $error = '验证码输入错误，请重新输入。';
         $response['status'] = 'error';
         $response['message'] = $error;

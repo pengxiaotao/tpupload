@@ -6,15 +6,23 @@ require_once '../includes/ocr.php';
 // 设置响应头为 JSON 格式
 header('Content-Type: application/json');
 
+// 初始化响应数组
+$response = array(
+    'status' => 'error',
+    'message' => ''
+);
+
 // 检查请求方法是否为 POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    echo json_encode(['error' => '只支持 POST 请求']);
+    $response['message'] = '只支持 POST 请求';
+    echo json_encode($response);
     exit;
 }
 
 // 检查是否提供了 token
 if (!isset($_POST['token'])) {
-    echo json_encode(['error' => '缺少 token 参数']);
+    $response['message'] = '缺少 token 参数';
+    echo json_encode($response);
     exit;
 }
 
@@ -28,7 +36,8 @@ $result = $stmt->get_result();
 $user = $result->fetch_assoc();
 
 if (!$user) {
-    echo json_encode(['error' => '无效的 token']);
+    $response['message'] = '无效的 token';
+    echo json_encode($response);
     exit;
 }
 
@@ -37,7 +46,8 @@ $balance = $user['balance'];
 
 // 检查余额
 if ($balance < 0.5) {
-    echo json_encode(['error' => '余额不足，请先充值']);
+    $response['message'] = '余额不足，请先充值';
+    echo json_encode($response);
     exit;
 }
 
@@ -49,7 +59,8 @@ $stmt->execute();
 
 // 处理文件上传
 if (!isset($_FILES['image'])) {
-    echo json_encode(['error' => '未上传图片']);
+    $response['message'] = '未上传图片';
+    echo json_encode($response);
     exit;
 }
 
@@ -61,7 +72,8 @@ $file_tmp = $file['tmp_name'];
 $upload_dir = '../uploads/';
 $upload_path = $upload_dir . uniqid() . '_' . $file_name;
 if (!move_uploaded_file($file_tmp, $upload_path)) {
-    echo json_encode(['error' => '文件上传失败']);
+    $response['message'] = '文件上传失败';
+    echo json_encode($response);
     exit;
 }
 
@@ -78,8 +90,13 @@ $insert_stmt->execute();
 // 调用 OCR
 $text = tencent_ocr($upload_path);
 if ($text) {
-    echo json_encode(['result' => $text]);
+    $response['status'] = 'success';
+    $response['message'] = '识别成功';
+    $response['result'] = $text;
 } else {
-    echo json_encode(['error' => 'OCR 识别失败']);
+    $response['message'] = 'OCR 识别失败';
 }
+
+// 输出 JSON 响应
+echo json_encode($response);
 ?>
